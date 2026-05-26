@@ -1,0 +1,34 @@
+inputDirectory: input
+outputDirectory: output
+font:
+  path: Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf
+  axes: "9,400,0,1"
+screenshots:
+- inputBasename: flashcard
+  backgroundColour: FAF8F4
+  textColour: 1A1714
+  text: "Language learning that|fits into your schedule using|flashcard notifications"
+- inputBasename: gen
+  backgroundColour: EAEAED
+  textColour: 1A1714
+  text: "Add vocabulary,|learn passively"
+- inputBasename: sentence
+  backgroundColour: 5F8604
+  textColour: FFFFFF
+  text: "Practise using your words|in real sentences,|regularly and easily"
+- inputBasename: home
+  backgroundColour: D7EBCC
+  textColour: 1A1714
+  text: "Simple and immersive.|Make consistent progress|with ease"
+- inputBasename: progress
+  backgroundColour: D7EBCC
+  textColour: 1A1714
+  text: "Track your progress|week by week"
+- inputBasename: decks
+  backgroundColour: EAEAED
+  textColour: 1A1714
+  text: "Organise your vocabulary|using decks"
+- inputBasename: settings
+  backgroundColour: FAF8F4
+  textColour: 1A1714
+  text: "Fine tune your|learning experience"
