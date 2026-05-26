@@ -180,7 +180,7 @@ def run_from_config(config_path):
 
         render({
             "input":         str(input_file),
-            "output":        str(output_dir / f"{basename}_processed.png"),
+            "output":        str(output_dir / f"screenshot-{i + 1}-{basename}_processed.png"),
             "bg":            bg,
             "lines":         lines,
             "text_colour":   text_col,
