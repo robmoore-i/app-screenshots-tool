@@ -1,4 +1,4 @@
-inputDirectory: /Users/rob/Downloads/skintracker-screenshots
+inputDirectory: input
 outputDirectory: output
 font:
   path: Fredoka-VariableFont_wdth,wght.ttf
