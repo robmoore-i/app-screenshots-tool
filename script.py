@@ -1,6 +1,8 @@
 import argparse
+import sys
 from pathlib import Path
 
+import yaml
 from PIL import Image, ImageDraw, ImageFont
 
 # ── Canvas ────────────────────────────────────────────────────────────────────
@@ -98,14 +100,111 @@ def render(cfg):
     print(f"Saved {cfg['output']} — {canvas.size}")
 
 
+# ── Config-mode helpers ───────────────────────────────────────────────────────
+
+def _normalise_hex(value, field):
+    """Return '#RRGGBB'; exit with a clear error if the value isn't a valid 6-digit hex."""
+    s = str(value).strip().lstrip("#")
+    if len(s) != 6 or not all(c in "0123456789abcdefABCDEF" for c in s):
+        sys.exit(f"Error: {field} value '{value}' is not a valid 6-digit hex colour.")
+    return f"#{s.upper()}"
+
+
+def _resolve_input(input_dir, basename):
+    """Return the single matching file for basename; exit if zero or more than one found."""
+    found = [p for p in input_dir.iterdir()
+             if p.stem == basename and p.suffix.lower() in {".jpg", ".jpeg", ".png"}]
+    if not found:
+        sys.exit(
+            f"Error: no file found for basename '{basename}' in {input_dir}\n"
+            f"  Looked for: {basename}.jpg / .jpeg / .png (any case)"
+        )
+    if len(found) > 1:
+        sys.exit(
+            f"Error: ambiguous input for basename '{basename}' — multiple files found:\n"
+            + "\n".join(f"  {p}" for p in found)
+        )
+    return found[0]
+
+
+def run_from_config(config_path):
+    config_path = Path(config_path).resolve()
+    if not config_path.exists():
+        sys.exit(f"Error: config file not found: {config_path}")
+
+    with config_path.open() as f:
+        raw = yaml.safe_load(f)
+
+    if not isinstance(raw, dict):
+        sys.exit("Error: config file must be a YAML mapping.")
+
+    config_dir = config_path.parent
+
+    def _res(p):
+        p = Path(p)
+        return p if p.is_absolute() else (config_dir / p).resolve()
+
+    for key in ("inputDirectory", "outputDirectory", "screenshots"):
+        if key not in raw:
+            sys.exit(f"Error: config is missing required key '{key}'.")
+
+    input_dir  = _res(raw["inputDirectory"])
+    output_dir = _res(raw["outputDirectory"])
+    entries    = raw["screenshots"]
+
+    if not isinstance(entries, list) or not entries:
+        sys.exit("Error: 'screenshots' must be a non-empty list.")
+
+    font_cfg      = raw.get("font") or {}
+    font_path     = str(_res(font_cfg["path"])) if font_cfg.get("path") else None
+    font_axes_raw = font_cfg.get("axes")
+    font_axes     = [float(v) for v in str(font_axes_raw).split(",")] if font_axes_raw else None
+
+    if any(str(e.get("text", "")).strip() for e in entries) and not font_path:
+        sys.exit("Error: 'font.path' is required when any screenshot has text.")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    for i, entry in enumerate(entries):
+        label = f"screenshots[{i}]"
+        for key in ("inputBasename", "backgroundColour", "textColour"):
+            if key not in entry:
+                sys.exit(f"Error: {label} is missing required key '{key}'.")
+
+        basename   = entry["inputBasename"]
+        label      = f"screenshots[{i}] ('{basename}')"
+        input_file = _resolve_input(input_dir, basename)
+        bg         = _normalise_hex(entry["backgroundColour"], f"{label}.backgroundColour")
+        text_col   = _normalise_hex(entry["textColour"],       f"{label}.textColour")
+        lines      = [l.strip() for l in str(entry.get("text", "")).split("|") if l.strip()]
+
+        render({
+            "input":         str(input_file),
+            "output":        str(output_dir / f"{basename}_processed.png"),
+            "bg":            bg,
+            "lines":         lines,
+            "text_colour":   text_col,
+            "font":          font_path,
+            "font_axes":     font_axes,
+            "screen_w":      DEFAULT_SCREEN_W,
+            "bezel":         DEFAULT_BEZEL,
+            "radius":        DEFAULT_RADIUS,
+            "bottom_margin": DEFAULT_BOTTOM_MARGIN,
+            "top_padding":   DEFAULT_TOP_PADDING,
+            "frame_colour":  DEFAULT_FRAME_COLOUR,
+        })
+
+
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Produce a 1284×2778 App Store screenshot from a raw iOS screenshot."
     )
-    parser.add_argument("input",
-                        help="Path to the raw screenshot (JPEG/PNG).")
+    parser.add_argument("input", nargs="?",
+                        help="Path to the raw screenshot (JPEG/PNG). Omit to run from config.yaml.")
+    parser.add_argument("--config", default=None, metavar="PATH",
+                        help="YAML config file for batch mode (default: ./config.yaml).")
     parser.add_argument("-o", "--output", default=None,
                         help="Output PNG path. Default: <input_stem>_final.png beside input.")
     parser.add_argument("--bg", default="#FFFFFF",
@@ -134,6 +233,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # Config mode: no positional input, or --config given explicitly.
+    if args.input is None or args.config is not None:
+        run_from_config(args.config or "config.yaml")
+        sys.exit(0)
+
+    # Single-image mode (original behaviour).
     if args.output is None:
         p = Path(args.input)
         args.output = str(p.parent / (p.stem + "_final.png"))

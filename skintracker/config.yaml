@@ -1,0 +1,22 @@
+inputDirectory: /Users/rob/Downloads/skintracker-screenshots
+outputDirectory: output
+font:
+  path: Fredoka-VariableFont_wdth,wght.ttf
+  axes: "550,105"
+screenshots:
+- inputBasename: home
+  backgroundColour: FEF6F0
+  textColour: "3B1F14"
+  text: "Your simple home|for acne recovery"
+- inputBasename: record
+  backgroundColour: F0F7F4
+  textColour: "163D2C"
+  text: "Record regularly|to stay focused"
+- inputBasename: gallery
+  backgroundColour: F4EFF9
+  textColour: "2C1545"
+  text: "Save photos to see|on your progress"
+- inputBasename: trends
+  backgroundColour: EDF3FC
+  textColour: "0E2646"
+  text: "Understand the trends|that lead to outbreaks"

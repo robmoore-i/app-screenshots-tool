@@ -2,7 +2,43 @@
 
 Generates App Store screenshots (1284×2778 px) from a raw iOS screenshot. Places the screenshot inside a simple iPhone-style bezel, centres it on a coloured background, and adds brand text above it.
 
-## Usage
+## Config mode (batch)
+
+Create a `config.yaml` in your project directory, then run:
+
+```bash
+cd my-app
+python /path/to/script.py
+```
+
+Or point at the config explicitly from anywhere:
+
+```bash
+python script.py --config my-app/config.yaml
+```
+
+### Config schema
+
+```yaml
+inputDirectory: raw/               # directory containing raw screenshots (relative to config file)
+outputDirectory: output/           # where to write output files (relative to config file)
+font:
+  path: MyFont.ttf                 # relative to config file
+  axes: "0,1,9,400"                # optional: comma-separated variable-font axis values
+screenshots:
+- inputBasename: screenshot-1      # filename WITHOUT extension
+  backgroundColour: FAF8F4         # 6-digit hex, '#' optional
+  textColour: "000000"             # mandatory; 6-digit hex, '#' optional
+  text: "Line one|Line two"        # '|'-separated lines displayed above the phone
+```
+
+**Input file resolution**: the script looks for `<inputBasename>.jpg`, `.jpeg`, or `.png` inside `inputDirectory`. Zero matches or more than one match are both errors — the script fails immediately with a descriptive message.
+
+**Output naming**: each entry writes `<inputBasename>_processed.png` to `outputDirectory`.
+
+---
+
+## Single-image mode
 
 ```bash
 python script.py <raw_screenshot> --font <font.ttf> [options]
@@ -36,7 +72,7 @@ python script.py <raw_screenshot> --font <font.ttf> [options]
 | `--top-padding <px>` | `40` | Minimum gap between the canvas top and the text. |
 | `--frame-colour "#000000"` | `#000000` | Bezel colour. |
 
-## Example
+### Example
 
 ```bash
 python script.py skintracker/skintracker-1.jpeg \
@@ -51,3 +87,4 @@ python script.py skintracker/skintracker-1.jpeg \
 
 - Python 3
 - [Pillow](https://pillow.readthedocs.io/) (`pip install pillow`)
+- [PyYAML](https://pyyaml.org/) (`pip install pyyaml`)
