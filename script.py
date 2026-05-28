@@ -96,7 +96,7 @@ def render(cfg):
             draw.text((x, y), line, font=font, fill=cfg["text_colour"])
             y += line_h + line_spacing
 
-    canvas.save(cfg["output"], format="PNG")
+    canvas.convert("RGB").save(cfg["output"], format="PNG")
     print(f"Saved {cfg['output']} — {canvas.size}")
 
 

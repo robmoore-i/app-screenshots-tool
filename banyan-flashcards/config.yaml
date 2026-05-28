@@ -24,11 +24,12 @@ screenshots:
   backgroundColour: D7EBCC
   textColour: 1A1714
   text: "Track your progress|week by week"
-- inputBasename: decks
-  backgroundColour: EAEAED
-  textColour: 1A1714
-  text: "Use multiple decks|to organise your vocabulary"
 - inputBasename: settings
   backgroundColour: FAF8F4
   textColour: 1A1714
   text: "Fine tune your|learning experience"
+- inputBasename: decks
+  backgroundColour: EAEAED
+  textColour: 1A1714
+  text: "Use multiple decks|to organise your vocabulary"
+
