@@ -9,6 +9,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 CANVAS_W, CANVAS_H = 1284, 2778
 
+IPAD_W, IPAD_H  = 2064, 2752
+IPAD_PAD_COLOUR = "#FFFFFF"
+
 # ── Text defaults ─────────────────────────────────────────────────────────────
 
 # Base values were tuned at BASE_WIDTH px wide; scale to actual canvas width.
@@ -53,6 +56,18 @@ def frame_screenshot(raw_path, screen_w, bezel, radius, frame_colour):
     phone.paste(screen, (bezel, bezel), mask=screen)
 
     return phone
+
+
+def fit_and_pad(src_path, target_w, target_h, bg):
+    """Scale preserving aspect to fit target, centre on a bg-filled canvas."""
+    src = Image.open(src_path).convert("RGB")
+    w, h = src.size
+    scale = min(target_w / w, target_h / h)
+    new_w, new_h = round(w * scale), round(h * scale)
+    scaled = src.resize((new_w, new_h), Image.LANCZOS)
+    canvas = Image.new("RGB", (target_w, target_h), bg)
+    canvas.paste(scaled, ((target_w - new_w) // 2, (target_h - new_h) // 2))
+    return canvas
 
 
 # ── Rendering ─────────────────────────────────────────────────────────────────
@@ -193,6 +208,27 @@ def run_from_config(config_path):
             "top_padding":   DEFAULT_TOP_PADDING,
             "frame_colour":  DEFAULT_FRAME_COLOUR,
         })
+
+    ipad_in_raw  = raw.get("ipadInputDirectory")
+    ipad_out_raw = raw.get("ipadOutputDirectory")
+    if bool(ipad_in_raw) != bool(ipad_out_raw):
+        missing = "ipadOutputDirectory" if ipad_in_raw else "ipadInputDirectory"
+        sys.exit(f"Error: '{missing}' must be set when the other iPad directory key is set.")
+    if ipad_in_raw and ipad_out_raw:
+        ipad_in  = _res(ipad_in_raw)
+        ipad_out = _res(ipad_out_raw)
+        if not ipad_in.is_dir():
+            sys.exit(f"Error: ipadInputDirectory not found: {ipad_in}")
+        images = sorted(p for p in ipad_in.iterdir()
+                        if p.suffix.lower() in {".png", ".jpg", ".jpeg"})
+        if not images:
+            sys.exit(f"Error: no images found in ipadInputDirectory: {ipad_in}")
+        ipad_out.mkdir(parents=True, exist_ok=True)
+        for img_path in images:
+            out_path = ipad_out / f"{img_path.stem}.png"
+            result = fit_and_pad(img_path, IPAD_W, IPAD_H, IPAD_PAD_COLOUR)
+            result.save(str(out_path), format="PNG")
+            print(f"Saved {out_path} — {result.size}")
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────

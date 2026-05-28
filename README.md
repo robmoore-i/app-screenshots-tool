@@ -55,6 +55,19 @@ screenshots:
   text: "Record regularly|to stay focused"
 ```
 
+### iPad screenshots
+
+To also produce iPad App Store screenshots (2064×2752 px), add the optional
+`ipadInputDirectory` and `ipadOutputDirectory` keys. Both must be set together.
+Every `.png`, `.jpg`, or `.jpeg` in the input directory is scaled to fit inside
+2064×2752 (preserving aspect ratio) and centred on a white canvas — no bezel or
+text. Output files keep their original stem with a `.png` extension.
+
+```yaml
+ipadInputDirectory: input-ipad
+ipadOutputDirectory: output-ipad
+```
+
 ### Dependencies
 
 - Python 3

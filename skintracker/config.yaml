@@ -1,5 +1,7 @@
 inputDirectory: input
 outputDirectory: output
+ipadInputDirectory: input-ipad
+ipadOutputDirectory: output-ipad
 font:
   path: Fredoka-VariableFont_wdth,wght.ttf
   axes: "550,105"
