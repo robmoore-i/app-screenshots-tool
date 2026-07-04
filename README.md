@@ -10,6 +10,12 @@ Generates App Store screenshots (1284×2778 px) from provided iOS screenshots.
 
 <img src="sample-outputs/skintracker-trends.png" width="300"> <img src="sample-outputs/banyan-sentence.png" width="300">
 
+## Setup
+
+```
+pip install -r requirements.txt
+```
+
 ## Usage
 
 ```
