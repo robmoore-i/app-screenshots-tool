@@ -1,5 +1,7 @@
 inputDirectory: input
 outputDirectory: output
+ipadInputDirectory: input-ipad
+ipadOutputDirectory: output-ipad
 font:
   path: Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf
   axes: "9,400,0,1"
