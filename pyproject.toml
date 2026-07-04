@@ -1,0 +1,9 @@
+[project]
+name = "app-screenshots-tool"
+version = "0.1.0"
+description = "Generates App Store screenshots from provided iOS screenshots."
+requires-python = ">=3.12"
+dependencies = [
+    "pillow>=12.3.0",
+    "pyyaml>=6.0.3",
+]

@@ -12,18 +12,20 @@ Generates App Store screenshots (1284×2778 px) from provided iOS screenshots.
 
 ## Setup
 
+Requires [uv](https://docs.astral.sh/uv/).
+
 ```
-pip install -r requirements.txt
+uv sync
 ```
 
 ## Usage
 
 ```
-python3 script.py --config banyan-flashcards/config.yaml
+uv run script.py --config banyan-flashcards/config.yaml
 ```
 
 ```
-python3 script.py --config skintracker/config.yaml
+uv run script.py --config skintracker/config.yaml
 ```
 
 ## Example configuration
@@ -76,6 +78,7 @@ ipadOutputDirectory: output-ipad
 
 ### Dependencies
 
-- Python 3
+Managed via `pyproject.toml` / `uv.lock`:
+
 - [Pillow](https://pillow.readthedocs.io/)
 - [PyYAML](https://pyyaml.org/)
