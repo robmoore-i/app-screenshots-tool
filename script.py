@@ -125,6 +125,64 @@ def _normalise_hex(value, field):
     return f"#{s.upper()}"
 
 
+def _resolve_colours(raw_colours, entries):
+    """Return one (background, text) hex pair per screenshot.
+
+    Colours come from the top-level 'colours' list, which is positional: it stays
+    put while the screenshots and their text are reordered. Configs written before
+    that key existed carry the colours on each screenshot entry instead.
+    """
+    inline = [i for i, e in enumerate(entries)
+              if "backgroundColour" in e or "textColour" in e]
+
+    if raw_colours is None:
+        pairs = []
+        for i, entry in enumerate(entries):
+            label = f"screenshots[{i}]"
+            for key in ("backgroundColour", "textColour"):
+                if key not in entry:
+                    sys.exit(
+                        f"Error: {label} is missing required key '{key}'.\n"
+                        f"  Alternatively, set a top-level 'colours' list — one entry per "
+                        f"screenshot — to keep the colour sequence fixed while reordering."
+                    )
+            pairs.append((
+                _normalise_hex(entry["backgroundColour"], f"{label}.backgroundColour"),
+                _normalise_hex(entry["textColour"],       f"{label}.textColour"),
+            ))
+        return pairs
+
+    if inline:
+        listed = ", ".join(str(i) for i in inline)
+        sys.exit(
+            f"Error: colours are set both in the top-level 'colours' list and on "
+            f"screenshots entries {listed}.\n"
+            f"  Remove 'backgroundColour' / 'textColour' from those screenshots entries."
+        )
+
+    if not isinstance(raw_colours, list):
+        sys.exit("Error: 'colours' must be a list.")
+    if len(raw_colours) != len(entries):
+        sys.exit(
+            f"Error: 'colours' has {len(raw_colours)} entries but 'screenshots' has "
+            f"{len(entries)} — the two lists must be the same length."
+        )
+
+    pairs = []
+    for i, colour in enumerate(raw_colours):
+        label = f"colours[{i}]"
+        if not isinstance(colour, dict):
+            sys.exit(f"Error: {label} must be a mapping of 'backgroundColour' and 'textColour'.")
+        for key in ("backgroundColour", "textColour"):
+            if key not in colour:
+                sys.exit(f"Error: {label} is missing required key '{key}'.")
+        pairs.append((
+            _normalise_hex(colour["backgroundColour"], f"{label}.backgroundColour"),
+            _normalise_hex(colour["textColour"],       f"{label}.textColour"),
+        ))
+    return pairs
+
+
 def _resolve_input(input_dir, basename):
     """Return the single matching file for basename; exit if zero or more than one found."""
     found = [p for p in input_dir.iterdir()
@@ -170,6 +228,8 @@ def run_from_config(config_path):
     if not isinstance(entries, list) or not entries:
         sys.exit("Error: 'screenshots' must be a non-empty list.")
 
+    colours = _resolve_colours(raw.get("colours"), entries)
+
     font_cfg      = raw.get("font") or {}
     font_path     = str(_res(font_cfg["path"])) if font_cfg.get("path") else None
     font_axes_raw = font_cfg.get("axes")
@@ -180,17 +240,12 @@ def run_from_config(config_path):
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for i, entry in enumerate(entries):
-        label = f"screenshots[{i}]"
-        for key in ("inputBasename", "backgroundColour", "textColour"):
-            if key not in entry:
-                sys.exit(f"Error: {label} is missing required key '{key}'.")
+    for i, (entry, (bg, text_col)) in enumerate(zip(entries, colours)):
+        if "inputBasename" not in entry:
+            sys.exit(f"Error: screenshots[{i}] is missing required key 'inputBasename'.")
 
         basename   = entry["inputBasename"]
-        label      = f"screenshots[{i}] ('{basename}')"
         input_file = _resolve_input(input_dir, basename)
-        bg         = _normalise_hex(entry["backgroundColour"], f"{label}.backgroundColour")
-        text_col   = _normalise_hex(entry["textColour"],       f"{label}.textColour")
         lines      = [l.strip() for l in str(entry.get("text", "")).split("|") if l.strip()]
 
         render({

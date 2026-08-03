@@ -5,33 +5,33 @@ ipadOutputDirectory: output-ipad
 font:
   path: Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf
   axes: "9,400,0,1"
+colours:
+  - backgroundColour: FAF8F4
+    textColour: 1A1714
+  - backgroundColour: D7EBCC
+    textColour: 1A1714
+  - backgroundColour: EAEAED
+    textColour: 1A1714
+  - backgroundColour: DDE8B9
+    textColour: 1A1714
+  - backgroundColour: D7EBCC
+    textColour: 1A1714
+  - backgroundColour: FAF8F4
+    textColour: 1A1714
+  - backgroundColour: EAEAED
+    textColour: 1A1714
 screenshots:
-- inputBasename: flashcard
-  backgroundColour: FAF8F4
-  textColour: 1A1714
-  text: "Effortless learning is possible|with flashcard notifications"
-- inputBasename: sentence
-  backgroundColour: D7EBCC
-  textColour: 1A1714
-  text: "Produce real sentences,|regularly and easily"
-- inputBasename: gen
-  backgroundColour: EAEAED
-  textColour: 1A1714
-  text: "Add vocabulary from photos|and let the app immerse you"
-- inputBasename: home
-  backgroundColour: DDE8B9
-  textColour: 1A1714
-  text: "Flashcard notifications|are simple and immersive"
-- inputBasename: progress
-  backgroundColour: D7EBCC
-  textColour: 1A1714
-  text: "Track your progress|week by week"
-- inputBasename: settings
-  backgroundColour: FAF8F4
-  textColour: 1A1714
-  text: "Fine tune your|learning experience"
-- inputBasename: decks
-  backgroundColour: EAEAED
-  textColour: 1A1714
-  text: "Use multiple decks|to organise your vocabulary"
-
+  - inputBasename: flashcard
+    text: "Make consistency effortless,|with flashcard notifications"
+  - inputBasename: sentence
+    text: "Produce a sentence,|get structured feedback"
+  - inputBasename: progress
+    text: "Track your progress|week by week"
+  - inputBasename: home
+    text: "Flashcard notifications|are simple and immersive"
+  - inputBasename: settings
+    text: "Fine tune your|learning experience"
+  - inputBasename: decks
+    text: "Use multiple decks|to organise your vocabulary"
+  - inputBasename: gen
+    text: "Add vocabulary from photos|and let the app immerse you"
