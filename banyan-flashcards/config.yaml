@@ -10,15 +10,15 @@ colours:
     textColour: 1A1714
   - backgroundColour: D7EBCC
     textColour: 1A1714
-  - backgroundColour: EAEAED
-    textColour: 1A1714
   - backgroundColour: DDE8B9
     textColour: 1A1714
-  - backgroundColour: D7EBCC
+  - backgroundColour: EAEAED
     textColour: 1A1714
   - backgroundColour: FAF8F4
     textColour: 1A1714
-  - backgroundColour: EAEAED
+  - backgroundColour: D7EBCC
+    textColour: 1A1714
+  - backgroundColour: DDE8B9
     textColour: 1A1714
 screenshots:
   - inputBasename: flashcard
