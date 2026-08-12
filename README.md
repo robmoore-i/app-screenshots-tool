@@ -21,7 +21,7 @@ uv sync
 ## Usage
 
 ```
-uv run script.py --config banyan-flashcards/config.yaml
+uv run script.py --config banyan-flashcards/main/config.yaml
 ```
 
 ```
