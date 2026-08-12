@@ -1,0 +1,37 @@
+inputDirectory: input
+outputDirectory: output
+ipadInputDirectory: input-ipad
+ipadOutputDirectory: output-ipad
+font:
+  path: ../Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf
+  axes: "9,400,0,1"
+colours:
+  - backgroundColour: FAF8F4
+    textColour: 1A1714
+  - backgroundColour: D7EBCC
+    textColour: 1A1714
+  - backgroundColour: DDE8B9
+    textColour: 1A1714
+  - backgroundColour: EAEAED
+    textColour: 1A1714
+  - backgroundColour: FAF8F4
+    textColour: 1A1714
+  - backgroundColour: D7EBCC
+    textColour: 1A1714
+  - backgroundColour: DDE8B9
+    textColour: 1A1714
+screenshots:
+  - inputBasename: flashcard
+    text: "Grow your vocab effortlessly,|with flashcard notifications"
+  - inputBasename: sentence
+    text: "Produce a sentence,|get structured feedback"
+  - inputBasename: progress
+    text: "Track your progress|week by week"
+  - inputBasename: home
+    text: "Flashcard notifications|are simple and immersive"
+  - inputBasename: settings
+    text: "Consistency made effortless,|with tunable learning"
+  - inputBasename: decks
+    text: "Use multiple decks|to organise your vocabulary"
+  - inputBasename: gen
+    text: "Add vocabulary from photos|and let the app immerse you"
