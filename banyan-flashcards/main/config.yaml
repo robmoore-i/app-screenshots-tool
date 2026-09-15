@@ -20,14 +20,18 @@ colours:
     textColour: 1A1714
   - backgroundColour: DDE8B9
     textColour: 1A1714
+  - backgroundColour: EAEAED
+    textColour: 1A1714
 screenshots:
   - inputBasename: flashcard
     text: "Make consistency effortless,|with flashcard notifications"
+  - inputBasename: reading
+    text: "Turn native content|into automatic suggestions"
   - inputBasename: sentence
     text: "Produce a sentence,|get structured feedback"
   - inputBasename: progress
     text: "Track your progress|week by week"
-  - inputBasename: home
+  - inputBasename: cards
     text: "Flashcard notifications|are simple and immersive"
   - inputBasename: settings
     text: "Fine tune your|learning experience"
