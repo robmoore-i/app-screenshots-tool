@@ -1,0 +1,4 @@
+Commit messages must start with '(Claude code)' and must not include a Co-Authored-By trailer.
+Write no comments. Code must communicate its intention by the use of good names and representative abstractions from the problem domain: when tempted to explain something, rename it or extract it instead. The only exceptions are the 'Created by Claude on d/M/yy' file header and a fact that no name can carry, such as an OS bug or an external API's quirk. Reasoning about a design decision belongs in the commit message not in the source. Before reporting any source code change as finished, run `git diff | grep '^+.*//'` and delete every added comment it finds that is not one of those exceptions. This does not apply to test code.
+Avoid adding default argument values for method or constructor parameters.
+Use trunk-based development - commit directly to the `main` branch.
