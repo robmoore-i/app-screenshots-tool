@@ -6,17 +6,21 @@ from pathlib import Path
 import yaml
 from PIL import Image, ImageDraw, ImageFont
 
-# ── Canvas ────────────────────────────────────────────────────────────────────
+# ── Devices ───────────────────────────────────────────────────────────────────
 
-IPHONE_W, IPHONE_H = 1284, 2778
-IPAD_W,   IPAD_H   = 2064, 2752
+IPHONE = {
+    "canvas_w":     1284,
+    "canvas_h":     2778,
+    "font_size":    89,
+    "line_spacing": 19,
+}
 
-# ── Text defaults ─────────────────────────────────────────────────────────────
-
-# Base values were tuned at BASE_WIDTH px wide; scale to actual canvas width.
-BASE_WIDTH        = 922
-BASE_FONT_SIZE    = 64
-BASE_LINE_SPACING = 14
+IPAD = {
+    "canvas_w":     2064,
+    "canvas_h":     2752,
+    "font_size":    112,
+    "line_spacing": 25,
+}
 
 # ── Frame defaults ─────────────────────────────────────────────────────────────
 
@@ -58,7 +62,7 @@ def frame_screenshot(raw_path, screen_w, bezel, radius, frame_colour):
 
 
 def frame_geometry(canvas_w):
-    scale = canvas_w / IPHONE_W
+    scale = canvas_w / IPHONE["canvas_w"]
     return {
         "screen_w":      round(IPHONE_SCREEN_W * scale),
         "bezel":         round(IPHONE_BEZEL_THICKNESS * scale),
@@ -89,11 +93,9 @@ def render(cfg):
 
     lines = cfg["lines"]
     if lines and cfg.get("font"):
-        scale        = canvas_w / BASE_WIDTH
-        font_size    = round(BASE_FONT_SIZE * scale)
-        line_spacing = round(BASE_LINE_SPACING * scale)
+        line_spacing = cfg["line_spacing"]
 
-        font = ImageFont.truetype(cfg["font"], size=font_size)
+        font = ImageFont.truetype(cfg["font"], size=cfg["font_size"])
         if cfg.get("font_axes"):
             font.set_variation_by_axes(cfg["font_axes"])
 
@@ -125,14 +127,13 @@ def screenshot_styling(entry, bg, text_col, font_path, font_axes):
     }
 
 
-def render_on_canvas(input_file, output_file, styling, canvas_w, canvas_h):
+def render_for_device(input_file, output_file, styling, device):
     render({
         **styling,
-        "input":    str(input_file),
-        "output":   str(output_file),
-        "canvas_w": canvas_w,
-        "canvas_h": canvas_h,
-        **frame_geometry(canvas_w),
+        **device,
+        **frame_geometry(device["canvas_w"]),
+        "input":  str(input_file),
+        "output": str(output_file),
     })
 
 
@@ -309,11 +310,11 @@ def run_from_config(config_path):
             sys.exit(f"Error: screenshots[{i}] is missing required key 'inputBasename'.")
 
         basename = entry["inputBasename"]
-        render_on_canvas(
+        render_for_device(
             _resolve_input(input_dir, basename),
             output_dir / f"screenshot-{i + 1}-{basename}_processed.png",
             screenshot_styling(entry, bg, text_col, font_path, font_axes),
-            IPHONE_W, IPHONE_H,
+            IPHONE,
         )
 
     if ipad_in and ipad_out:
@@ -331,11 +332,11 @@ def run_from_config(config_path):
             if ipad_file is None:
                 continue
             rendered.append(ipad_file)
-            render_on_canvas(
+            render_for_device(
                 ipad_file,
                 ipad_out / f"screenshot-{len(rendered)}-{basename}_processed.png",
                 screenshot_styling(entry, bg, text_col, font_path, font_axes),
-                IPAD_W, IPAD_H,
+                IPAD,
             )
 
         skipped = [p.name for p in ipad_images if p not in rendered]
@@ -399,10 +400,9 @@ if __name__ == "__main__":
     font_axes = [float(v) for v in args.font_axes.split(",")] if args.font_axes else None
 
     render({
+        **IPHONE,
         "input":         args.input,
         "output":        args.output,
-        "canvas_w":      IPHONE_W,
-        "canvas_h":      IPHONE_H,
         "bg":            args.bg,
         "lines":         lines,
         "text_colour":   args.text_colour,

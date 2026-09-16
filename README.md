@@ -112,7 +112,9 @@ separate iPad list:
   ones: `screenshot-1-progress_processed.png`.
 
 Every frame measurement is scaled from the iPhone canvas by the ratio of canvas
-widths, so the bezel fills the same 77% of the width on both devices.
+widths, so the bezel fills the same 77% of the width on both devices. Text size is
+set per device instead: 89 px on iPhone and 112 px on iPad. Scaling text by canvas
+width too would give the iPad 143 px, which crowds the wider canvas.
 
 Give the tool iPad screenshots captured at 2064×2752 — the 13-inch iPad size. A
 source that is taller in proportion, such as an 11-inch iPad capture, produces a
