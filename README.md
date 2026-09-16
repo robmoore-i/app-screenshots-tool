@@ -1,6 +1,6 @@
 # App screenshots tool
 
-Generates App Store screenshots (1284×2778 px) from provided iOS screenshots. 
+Generates App Store screenshots from provided iOS screenshots: 1284×2778 px for iPhone, 2064×2752 px for iPad.
 
 ## Sample output
 
@@ -93,14 +93,30 @@ if `colours` is present, a screenshots entry setting `backgroundColour` or
 
 To also produce iPad App Store screenshots (2064×2752 px), add the optional
 `ipadInputDirectory` and `ipadOutputDirectory` keys. Both must be set together.
-Every `.png`, `.jpg`, or `.jpeg` in the input directory is scaled to fit inside
-2064×2752 (preserving aspect ratio) and centred on a white canvas — no bezel or
-text. Output files keep their original stem with a `.png` extension.
 
 ```yaml
 ipadInputDirectory: input-ipad
 ipadOutputDirectory: output-ipad
 ```
+
+iPad screenshots get the same styling as iPhone screenshots — coloured
+background, text, and bezel — and reuse the same `screenshots` list. There is no
+separate iPad list:
+
+- Each `screenshots` entry is matched to an iPad image by `inputBasename`, so an
+  iPad screenshot carries the same text and colour as its iPhone twin.
+- Entries with no iPad image are passed over, and iPad images that match no entry
+  are skipped with a note printed to the console.
+- Output files are numbered 1..N over the iPad screenshots actually produced, in
+  the order the entries appear in `screenshots`, and are named like the iPhone
+  ones: `screenshot-1-progress_processed.png`.
+
+Every frame measurement is scaled from the iPhone canvas by the ratio of canvas
+widths, so the bezel fills the same 77% of the width on both devices.
+
+Give the tool iPad screenshots captured at 2064×2752 — the 13-inch iPad size. A
+source that is taller in proportion, such as an 11-inch iPad capture, produces a
+taller bezel that leaves too little room, and the text will overlap it.
 
 ### Dependencies
 

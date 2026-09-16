@@ -8,10 +8,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 # ── Canvas ────────────────────────────────────────────────────────────────────
 
-CANVAS_W, CANVAS_H = 1284, 2778
-
-IPAD_W, IPAD_H  = 2064, 2752
-IPAD_PAD_COLOUR = "#FFFFFF"
+IPHONE_W, IPHONE_H = 1284, 2778
+IPAD_W,   IPAD_H   = 2064, 2752
 
 # ── Text defaults ─────────────────────────────────────────────────────────────
 
@@ -22,12 +20,12 @@ BASE_LINE_SPACING = 14
 
 # ── Frame defaults ─────────────────────────────────────────────────────────────
 
-DEFAULT_SCREEN_W      = 940    # width of the scaled screenshot inside the bezel
-DEFAULT_BEZEL         = 26     # bezel border thickness (px)
-DEFAULT_RADIUS        = 90     # inner (screen) corner radius (px)
-DEFAULT_BOTTOM_MARGIN = 120    # gap between phone bottom and canvas bottom
-DEFAULT_TOP_PADDING   = 40     # minimum gap above text block
-DEFAULT_FRAME_COLOUR  = "#000000"
+IPHONE_SCREEN_W         = 940
+IPHONE_BEZEL_THICKNESS  = 26
+IPHONE_SCREEN_RADIUS    = 90
+IPHONE_BOTTOM_MARGIN    = 120
+IPHONE_TOP_PADDING      = 40
+FRAME_COLOUR            = "#000000"
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -59,22 +57,23 @@ def frame_screenshot(raw_path, screen_w, bezel, radius, frame_colour):
     return phone
 
 
-def fit_and_pad(src_path, target_w, target_h, bg):
-    """Scale preserving aspect to fit target, centre on a bg-filled canvas."""
-    src = Image.open(src_path).convert("RGB")
-    w, h = src.size
-    scale = min(target_w / w, target_h / h)
-    new_w, new_h = round(w * scale), round(h * scale)
-    scaled = src.resize((new_w, new_h), Image.LANCZOS)
-    canvas = Image.new("RGB", (target_w, target_h), bg)
-    canvas.paste(scaled, ((target_w - new_w) // 2, (target_h - new_h) // 2))
-    return canvas
+def frame_geometry(canvas_w):
+    scale = canvas_w / IPHONE_W
+    return {
+        "screen_w":      round(IPHONE_SCREEN_W * scale),
+        "bezel":         round(IPHONE_BEZEL_THICKNESS * scale),
+        "radius":        round(IPHONE_SCREEN_RADIUS * scale),
+        "bottom_margin": round(IPHONE_BOTTOM_MARGIN * scale),
+        "top_padding":   round(IPHONE_TOP_PADDING * scale),
+        "frame_colour":  FRAME_COLOUR,
+    }
 
 
 # ── Rendering ─────────────────────────────────────────────────────────────────
 
 def render(cfg):
-    canvas = Image.new("RGBA", (CANVAS_W, CANVAS_H), cfg["bg"])
+    canvas_w, canvas_h = cfg["canvas_w"], cfg["canvas_h"]
+    canvas = Image.new("RGBA", (canvas_w, canvas_h), cfg["bg"])
 
     phone = frame_screenshot(
         cfg["input"],
@@ -84,13 +83,13 @@ def render(cfg):
         cfg["frame_colour"],
     )
     phone_w, phone_h = phone.size
-    phone_x = (CANVAS_W - phone_w) // 2
-    phone_y = CANVAS_H - cfg["bottom_margin"] - phone_h
+    phone_x = (canvas_w - phone_w) // 2
+    phone_y = canvas_h - cfg["bottom_margin"] - phone_h
     canvas.paste(phone, (phone_x, phone_y), mask=phone)
 
     lines = cfg["lines"]
     if lines and cfg.get("font"):
-        scale        = CANVAS_W / BASE_WIDTH
+        scale        = canvas_w / BASE_WIDTH
         font_size    = round(BASE_FONT_SIZE * scale)
         line_spacing = round(BASE_LINE_SPACING * scale)
 
@@ -108,12 +107,33 @@ def render(cfg):
 
         for line in lines:
             bbox = draw.textbbox((0, 0), line, font=font)
-            x    = (CANVAS_W - (bbox[2] - bbox[0])) // 2
+            x    = (canvas_w - (bbox[2] - bbox[0])) // 2
             draw.text((x, y), line, font=font, fill=cfg["text_colour"])
             y += line_h + line_spacing
 
     canvas.convert("RGB").save(cfg["output"], format="PNG")
     print(f"Saved {cfg['output']} — {canvas.size}")
+
+
+def screenshot_styling(entry, bg, text_col, font_path, font_axes):
+    return {
+        "bg":          bg,
+        "lines":       [l.strip() for l in str(entry.get("text", "")).split("|") if l.strip()],
+        "text_colour": text_col,
+        "font":        font_path,
+        "font_axes":   font_axes,
+    }
+
+
+def render_on_canvas(input_file, output_file, styling, canvas_w, canvas_h):
+    render({
+        **styling,
+        "input":    str(input_file),
+        "output":   str(output_file),
+        "canvas_w": canvas_w,
+        "canvas_h": canvas_h,
+        **frame_geometry(canvas_w),
+    })
 
 
 # ── Config-mode helpers ───────────────────────────────────────────────────────
@@ -184,21 +204,33 @@ def _resolve_colours(raw_colours, entries):
     return pairs
 
 
-def _resolve_input(input_dir, basename):
-    """Return the single matching file for basename; exit if zero or more than one found."""
-    found = [p for p in input_dir.iterdir()
-             if p.stem == basename and p.suffix.lower() in {".jpg", ".jpeg", ".png"}]
-    if not found:
-        sys.exit(
-            f"Error: no file found for basename '{basename}' in {input_dir}\n"
-            f"  Looked for: {basename}.jpg / .jpeg / .png (any case)"
-        )
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
+
+
+def _images_in(directory):
+    return sorted(p for p in directory.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES)
+
+
+def _find_input(input_dir, basename):
+    """Return the single matching file for basename, or None; exit if more than one found."""
+    found = [p for p in _images_in(input_dir) if p.stem == basename]
     if len(found) > 1:
         sys.exit(
             f"Error: ambiguous input for basename '{basename}' — multiple files found:\n"
             + "\n".join(f"  {p}" for p in found)
         )
-    return found[0]
+    return found[0] if found else None
+
+
+def _resolve_input(input_dir, basename):
+    """Return the single matching file for basename; exit if zero or more than one found."""
+    found = _find_input(input_dir, basename)
+    if found is None:
+        sys.exit(
+            f"Error: no file found for basename '{basename}' in {input_dir}\n"
+            f"  Looked for: {basename}.jpg / .jpeg / .png (any case)"
+        )
+    return found
 
 
 def _reset_output_dir(output_dir, protected):
@@ -276,46 +308,46 @@ def run_from_config(config_path):
         if "inputBasename" not in entry:
             sys.exit(f"Error: screenshots[{i}] is missing required key 'inputBasename'.")
 
-        basename   = entry["inputBasename"]
-        input_file = _resolve_input(input_dir, basename)
-        lines      = [l.strip() for l in str(entry.get("text", "")).split("|") if l.strip()]
-
-        render({
-            "input":         str(input_file),
-            "output":        str(output_dir / f"screenshot-{i + 1}-{basename}_processed.png"),
-            "bg":            bg,
-            "lines":         lines,
-            "text_colour":   text_col,
-            "font":          font_path,
-            "font_axes":     font_axes,
-            "screen_w":      DEFAULT_SCREEN_W,
-            "bezel":         DEFAULT_BEZEL,
-            "radius":        DEFAULT_RADIUS,
-            "bottom_margin": DEFAULT_BOTTOM_MARGIN,
-            "top_padding":   DEFAULT_TOP_PADDING,
-            "frame_colour":  DEFAULT_FRAME_COLOUR,
-        })
+        basename = entry["inputBasename"]
+        render_on_canvas(
+            _resolve_input(input_dir, basename),
+            output_dir / f"screenshot-{i + 1}-{basename}_processed.png",
+            screenshot_styling(entry, bg, text_col, font_path, font_axes),
+            IPHONE_W, IPHONE_H,
+        )
 
     if ipad_in and ipad_out:
         if not ipad_in.is_dir():
             sys.exit(f"Error: ipadInputDirectory not found: {ipad_in}")
-        images = sorted(p for p in ipad_in.iterdir()
-                        if p.suffix.lower() in {".png", ".jpg", ".jpeg"})
-        if not images:
+        ipad_images = _images_in(ipad_in)
+        if not ipad_images:
             sys.exit(f"Error: no images found in ipadInputDirectory: {ipad_in}")
         _reset_output_dir(ipad_out, protected)
-        for img_path in images:
-            out_path = ipad_out / f"{img_path.stem}.png"
-            result = fit_and_pad(img_path, IPAD_W, IPAD_H, IPAD_PAD_COLOUR)
-            result.save(str(out_path), format="PNG")
-            print(f"Saved {out_path} — {result.size}")
+
+        rendered = []
+        for entry, (bg, text_col) in zip(entries, colours):
+            basename  = entry["inputBasename"]
+            ipad_file = _find_input(ipad_in, basename)
+            if ipad_file is None:
+                continue
+            rendered.append(ipad_file)
+            render_on_canvas(
+                ipad_file,
+                ipad_out / f"screenshot-{len(rendered)}-{basename}_processed.png",
+                screenshot_styling(entry, bg, text_col, font_path, font_axes),
+                IPAD_W, IPAD_H,
+            )
+
+        skipped = [p.name for p in ipad_images if p not in rendered]
+        if skipped:
+            print(f"Skipped, no screenshots entry matches: {', '.join(skipped)}")
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Produce a 1284×2778 App Store screenshot from a raw iOS screenshot."
+        description="Produce App Store screenshots: 1284×2778 for iPhone, 2064×2752 for iPad."
     )
     parser.add_argument("input", nargs="?",
                         help="Path to the raw screenshot (JPEG/PNG). Omit to run from config.yaml.")
@@ -334,18 +366,18 @@ if __name__ == "__main__":
     parser.add_argument("--font-axes", default=None,
                         help="Comma-separated variation axes, e.g. '600,100'. Optional.")
     # Frame tuning
-    parser.add_argument("--screen-width",   type=int, default=DEFAULT_SCREEN_W,
-                        help=f"Screenshot width inside bezel in px (default: {DEFAULT_SCREEN_W}).")
-    parser.add_argument("--bezel",          type=int, default=DEFAULT_BEZEL,
-                        help=f"Bezel border thickness in px (default: {DEFAULT_BEZEL}).")
-    parser.add_argument("--radius",         type=int, default=DEFAULT_RADIUS,
-                        help=f"Inner corner radius in px (default: {DEFAULT_RADIUS}).")
-    parser.add_argument("--bottom-margin",  type=int, default=DEFAULT_BOTTOM_MARGIN,
-                        help=f"Gap below phone in px (default: {DEFAULT_BOTTOM_MARGIN}).")
-    parser.add_argument("--top-padding",    type=int, default=DEFAULT_TOP_PADDING,
-                        help=f"Minimum gap above text in px (default: {DEFAULT_TOP_PADDING}).")
-    parser.add_argument("--frame-colour",   default=DEFAULT_FRAME_COLOUR,
-                        help=f"Bezel colour hex (default: '{DEFAULT_FRAME_COLOUR}').")
+    parser.add_argument("--screen-width",   type=int, default=IPHONE_SCREEN_W,
+                        help=f"Screenshot width inside bezel in px (default: {IPHONE_SCREEN_W}).")
+    parser.add_argument("--bezel",          type=int, default=IPHONE_BEZEL_THICKNESS,
+                        help=f"Bezel border thickness in px (default: {IPHONE_BEZEL_THICKNESS}).")
+    parser.add_argument("--radius",         type=int, default=IPHONE_SCREEN_RADIUS,
+                        help=f"Inner corner radius in px (default: {IPHONE_SCREEN_RADIUS}).")
+    parser.add_argument("--bottom-margin",  type=int, default=IPHONE_BOTTOM_MARGIN,
+                        help=f"Gap below phone in px (default: {IPHONE_BOTTOM_MARGIN}).")
+    parser.add_argument("--top-padding",    type=int, default=IPHONE_TOP_PADDING,
+                        help=f"Minimum gap above text in px (default: {IPHONE_TOP_PADDING}).")
+    parser.add_argument("--frame-colour",   default=FRAME_COLOUR,
+                        help=f"Bezel colour hex (default: '{FRAME_COLOUR}').")
 
     args = parser.parse_args()
 
@@ -369,6 +401,8 @@ if __name__ == "__main__":
     render({
         "input":         args.input,
         "output":        args.output,
+        "canvas_w":      IPHONE_W,
+        "canvas_h":      IPHONE_H,
         "bg":            args.bg,
         "lines":         lines,
         "text_colour":   args.text_colour,
