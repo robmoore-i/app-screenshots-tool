@@ -25,6 +25,8 @@ colours:
 screenshots:
   - inputBasename: flashcard
     text: "Make consistency effortless,|with flashcard notifications"
+  - inputBasename: gen
+    text: "Add vocabulary from photos|and learn it passively"
   - inputBasename: reading
     text: "Turn native content|into automatic suggestions"
   - inputBasename: sentence
@@ -37,5 +39,3 @@ screenshots:
     text: "Fine tune your|learning experience"
   - inputBasename: decks
     text: "Use multiple decks|to organise your vocabulary"
-  - inputBasename: gen
-    text: "Add vocabulary from photos|and let the app immerse you"
