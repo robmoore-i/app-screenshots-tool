@@ -13,6 +13,7 @@ IPHONE = {
     "canvas_h":      2778,
     "font_size":     89,
     "line_spacing":  19,
+    "bezel":         26,
     "screen_radius": 90,
 }
 
@@ -21,13 +22,13 @@ IPAD = {
     "canvas_h":      2752,
     "font_size":     112,
     "line_spacing":  25,
-    "screen_radius": 110,
+    "bezel":         21,
+    "screen_radius": 75,
 }
 
 # ── Frame defaults ─────────────────────────────────────────────────────────────
 
 IPHONE_SCREEN_W         = 940
-IPHONE_BEZEL_THICKNESS  = 13
 IPHONE_BOTTOM_MARGIN    = 120
 IPHONE_TOP_PADDING      = 40
 FRAME_COLOUR            = "#000000"
@@ -66,7 +67,6 @@ def frame_geometry(device):
     scale = device["canvas_w"] / IPHONE["canvas_w"]
     return {
         "screen_w":      round(IPHONE_SCREEN_W * scale),
-        "bezel":         round(IPHONE_BEZEL_THICKNESS * scale),
         "radius":        device["screen_radius"],
         "bottom_margin": round(IPHONE_BOTTOM_MARGIN * scale),
         "top_padding":   round(IPHONE_TOP_PADDING * scale),
@@ -370,8 +370,8 @@ if __name__ == "__main__":
     # Frame tuning
     parser.add_argument("--screen-width",   type=int, default=IPHONE_SCREEN_W,
                         help=f"Screenshot width inside bezel in px (default: {IPHONE_SCREEN_W}).")
-    parser.add_argument("--bezel",          type=int, default=IPHONE_BEZEL_THICKNESS,
-                        help=f"Bezel border thickness in px (default: {IPHONE_BEZEL_THICKNESS}).")
+    parser.add_argument("--bezel",          type=int, default=IPHONE["bezel"],
+                        help=f"Bezel border thickness in px (default: {IPHONE['bezel']}).")
     parser.add_argument("--radius",         type=int, default=IPHONE["screen_radius"],
                         help=f"Inner corner radius in px (default: {IPHONE['screen_radius']}).")
     parser.add_argument("--bottom-margin",  type=int, default=IPHONE_BOTTOM_MARGIN,
