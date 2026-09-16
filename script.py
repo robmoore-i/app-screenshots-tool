@@ -9,24 +9,25 @@ from PIL import Image, ImageDraw, ImageFont
 # ── Devices ───────────────────────────────────────────────────────────────────
 
 IPHONE = {
-    "canvas_w":     1284,
-    "canvas_h":     2778,
-    "font_size":    89,
-    "line_spacing": 19,
+    "canvas_w":      1284,
+    "canvas_h":      2778,
+    "font_size":     89,
+    "line_spacing":  19,
+    "screen_radius": 90,
 }
 
 IPAD = {
-    "canvas_w":     2064,
-    "canvas_h":     2752,
-    "font_size":    112,
-    "line_spacing": 25,
+    "canvas_w":      2064,
+    "canvas_h":      2752,
+    "font_size":     112,
+    "line_spacing":  25,
+    "screen_radius": 110,
 }
 
 # ── Frame defaults ─────────────────────────────────────────────────────────────
 
 IPHONE_SCREEN_W         = 940
 IPHONE_BEZEL_THICKNESS  = 26
-IPHONE_SCREEN_RADIUS    = 90
 IPHONE_BOTTOM_MARGIN    = 120
 IPHONE_TOP_PADDING      = 40
 FRAME_COLOUR            = "#000000"
@@ -61,12 +62,12 @@ def frame_screenshot(raw_path, screen_w, bezel, radius, frame_colour):
     return phone
 
 
-def frame_geometry(canvas_w):
-    scale = canvas_w / IPHONE["canvas_w"]
+def frame_geometry(device):
+    scale = device["canvas_w"] / IPHONE["canvas_w"]
     return {
         "screen_w":      round(IPHONE_SCREEN_W * scale),
         "bezel":         round(IPHONE_BEZEL_THICKNESS * scale),
-        "radius":        round(IPHONE_SCREEN_RADIUS * scale),
+        "radius":        device["screen_radius"],
         "bottom_margin": round(IPHONE_BOTTOM_MARGIN * scale),
         "top_padding":   round(IPHONE_TOP_PADDING * scale),
         "frame_colour":  FRAME_COLOUR,
@@ -131,7 +132,7 @@ def render_for_device(input_file, output_file, styling, device):
     render({
         **styling,
         **device,
-        **frame_geometry(device["canvas_w"]),
+        **frame_geometry(device),
         "input":  str(input_file),
         "output": str(output_file),
     })
@@ -371,8 +372,8 @@ if __name__ == "__main__":
                         help=f"Screenshot width inside bezel in px (default: {IPHONE_SCREEN_W}).")
     parser.add_argument("--bezel",          type=int, default=IPHONE_BEZEL_THICKNESS,
                         help=f"Bezel border thickness in px (default: {IPHONE_BEZEL_THICKNESS}).")
-    parser.add_argument("--radius",         type=int, default=IPHONE_SCREEN_RADIUS,
-                        help=f"Inner corner radius in px (default: {IPHONE_SCREEN_RADIUS}).")
+    parser.add_argument("--radius",         type=int, default=IPHONE["screen_radius"],
+                        help=f"Inner corner radius in px (default: {IPHONE['screen_radius']}).")
     parser.add_argument("--bottom-margin",  type=int, default=IPHONE_BOTTOM_MARGIN,
                         help=f"Gap below phone in px (default: {IPHONE_BOTTOM_MARGIN}).")
     parser.add_argument("--top-padding",    type=int, default=IPHONE_TOP_PADDING,
