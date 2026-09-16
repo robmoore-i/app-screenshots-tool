@@ -1,4 +1,5 @@
 import argparse
+import shutil
 import sys
 from pathlib import Path
 
@@ -200,6 +201,27 @@ def _resolve_input(input_dir, basename):
     return found[0]
 
 
+def _reset_output_dir(output_dir, protected):
+    """Delete and recreate output_dir so files from earlier runs don't linger.
+
+    Refuses to delete a directory that holds any of the protected paths
+    (config file, input directories, font), since that would destroy inputs.
+    """
+    for p in protected:
+        if p is None:
+            continue
+        p = Path(p).resolve()
+        if p == output_dir or output_dir in p.parents:
+            sys.exit(
+                f"Error: refusing to clear output directory {output_dir} because it contains {p}."
+            )
+    if output_dir.exists():
+        if not output_dir.is_dir():
+            sys.exit(f"Error: output path exists but is not a directory: {output_dir}")
+        shutil.rmtree(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+
 def run_from_config(config_path):
     config_path = Path(config_path).resolve()
     if not config_path.exists():
@@ -238,7 +260,17 @@ def run_from_config(config_path):
     if any(str(e.get("text", "")).strip() for e in entries) and not font_path:
         sys.exit("Error: 'font.path' is required when any screenshot has text.")
 
-    output_dir.mkdir(parents=True, exist_ok=True)
+    ipad_in_raw  = raw.get("ipadInputDirectory")
+    ipad_out_raw = raw.get("ipadOutputDirectory")
+    if bool(ipad_in_raw) != bool(ipad_out_raw):
+        missing = "ipadOutputDirectory" if ipad_in_raw else "ipadInputDirectory"
+        sys.exit(f"Error: '{missing}' must be set when the other iPad directory key is set.")
+    ipad_in  = _res(ipad_in_raw)  if ipad_in_raw  else None
+    ipad_out = _res(ipad_out_raw) if ipad_out_raw else None
+
+    # Clear old output first so each run produces exactly the configured files.
+    protected = [config_path, input_dir, ipad_in, font_path]
+    _reset_output_dir(output_dir, protected)
 
     for i, (entry, (bg, text_col)) in enumerate(zip(entries, colours)):
         if "inputBasename" not in entry:
@@ -264,21 +296,14 @@ def run_from_config(config_path):
             "frame_colour":  DEFAULT_FRAME_COLOUR,
         })
 
-    ipad_in_raw  = raw.get("ipadInputDirectory")
-    ipad_out_raw = raw.get("ipadOutputDirectory")
-    if bool(ipad_in_raw) != bool(ipad_out_raw):
-        missing = "ipadOutputDirectory" if ipad_in_raw else "ipadInputDirectory"
-        sys.exit(f"Error: '{missing}' must be set when the other iPad directory key is set.")
-    if ipad_in_raw and ipad_out_raw:
-        ipad_in  = _res(ipad_in_raw)
-        ipad_out = _res(ipad_out_raw)
+    if ipad_in and ipad_out:
         if not ipad_in.is_dir():
             sys.exit(f"Error: ipadInputDirectory not found: {ipad_in}")
         images = sorted(p for p in ipad_in.iterdir()
                         if p.suffix.lower() in {".png", ".jpg", ".jpeg"})
         if not images:
             sys.exit(f"Error: no images found in ipadInputDirectory: {ipad_in}")
-        ipad_out.mkdir(parents=True, exist_ok=True)
+        _reset_output_dir(ipad_out, protected)
         for img_path in images:
             out_path = ipad_out / f"{img_path.stem}.png"
             result = fit_and_pad(img_path, IPAD_W, IPAD_H, IPAD_PAD_COLOUR)

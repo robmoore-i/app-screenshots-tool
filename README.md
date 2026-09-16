@@ -37,6 +37,7 @@ This is the configuration for my skintracker app:
 - Vertical bars indicate line breaks for the text.
 - Font axes are based on the tvar axis order, which may or may not match the variable font's filename.
 - Output files will be prefixed to preserve the order of items in the yaml list.
+- Each run deletes and recreates the output directories first, so the output only ever contains the files the config produces. The tool refuses to run if an output directory contains the config, an input directory, or the font.
 
 ```yaml
 inputDirectory: input
