@@ -27,7 +27,7 @@ IPAD = {
 # ── Frame defaults ─────────────────────────────────────────────────────────────
 
 IPHONE_SCREEN_W         = 940
-IPHONE_BEZEL_THICKNESS  = 26
+IPHONE_BEZEL_THICKNESS  = 13
 IPHONE_BOTTOM_MARGIN    = 120
 IPHONE_TOP_PADDING      = 40
 FRAME_COLOUR            = "#000000"
